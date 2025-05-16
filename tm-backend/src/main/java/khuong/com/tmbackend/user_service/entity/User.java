@@ -1,4 +1,4 @@
-package khuong.com.tmbackend.entity;
+package khuong.com.tmbackend.user_service.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -23,18 +24,18 @@ public class User {
 
     @NotBlank
     @Column(unique = true)
-    private String username; // Hoặc email
+    private String username;
 
     @NotBlank
     private String password;
 
     private String fullName;
-    private String email; // Nếu username không phải email
+    private String email;
     private String phoneNumber;
     private String address;
-    private boolean enabled = true; // Để quản lý khóa/mở tài khoản
+    private boolean enabled = true;
 
-    @ManyToMany(fetch = FetchType.EAGER) // EAGER để load Role cùng User
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
                joinColumns = @JoinColumn(name = "user_id"),
                inverseJoinColumns = @JoinColumn(name = "role_id"))
