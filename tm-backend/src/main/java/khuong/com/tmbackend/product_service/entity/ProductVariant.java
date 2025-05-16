@@ -1,4 +1,4 @@
-package khuong.com.tmbackend.purchase_service.entity;
+package khuong.com.tmbackend.product_service.entity;
 
 import java.math.BigDecimal;
 
@@ -10,38 +10,33 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import khuong.com.tmbackend.product_service.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "order_items")
-public class OrderItem {
+@Table(name = "product_variants")
+public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product; // Tham chiếu đến Product
+    private Product product;
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "product_variant_id") // Nếu mua theo biến thể
-    // private ProductVariant productVariant;
-
-    private Integer quantity;
-    private BigDecimal pricePerUnit; // Giá tại thời điểm mua
-    private BigDecimal subtotal; // quantity * pricePerUnit
+    private String name; // Ví dụ: "Màu Xanh, Size L"
+    // Hoặc các thuộc tính riêng:
+    // private String color;
+    // private String size;
+    private BigDecimal priceModifier; // Chênh lệch giá so với sản phẩm gốc (có thể âm hoặc dương)
+    private Integer stockQuantity;
+    private String sku; // Mã SKU cho biến thể
 
     // Constructors, Getters, Setters (Lombok)
 }
+
