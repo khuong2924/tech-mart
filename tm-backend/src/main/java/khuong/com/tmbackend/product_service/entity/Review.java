@@ -36,7 +36,7 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private int rating; // 1-5 sao
+    private int rating; 
 
     @Lob
     private String comment;

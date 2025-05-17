@@ -1,7 +1,9 @@
 package khuong.com.tmbackend.purchase_service.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -40,5 +42,12 @@ public class CartItem {
     private ProductVariant productVariant; 
 
     private int quantity;
+    
+    @Column(name = "unit_price", nullable = false)
+    private BigDecimal unitPrice;
+    
+    @Column(name = "subtotal", nullable = false)
+    private BigDecimal subtotal;
+    
     private Instant addedAt;
 }

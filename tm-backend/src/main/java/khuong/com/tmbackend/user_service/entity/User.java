@@ -1,4 +1,5 @@
 package khuong.com.tmbackend.user_service.entity;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,9 +13,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -44,17 +43,18 @@ public class User {
     private String password;
 
     private String fullName;
+    
+    @Column(unique = true)
     private String email;
-    private String phoneNumber;
+    
+    private String phone;
     private String address;
+    private String gender;
     private boolean enabled = true;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles",
-               joinColumns = @JoinColumn(name = "user_id"),
-               inverseJoinColumns = @JoinColumn(name = "role_id"))
-    @JsonIgnoreProperties("users")
-    private Set<Role> roles = new HashSet<>();
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("user")
+    private Set<UserRole> roles = new HashSet<>();
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -68,5 +68,11 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
+    }
+    
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 }
