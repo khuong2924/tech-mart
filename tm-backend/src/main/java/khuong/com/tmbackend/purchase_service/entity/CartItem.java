@@ -37,7 +37,7 @@ public class CartItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_variant_id")
-    private ProductVariant productVariant; // Nếu chọn biến thể
+    private ProductVariant productVariant; 
 
     private int quantity;
     private Instant addedAt;

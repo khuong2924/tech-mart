@@ -8,9 +8,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "discount_codes")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DiscountCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,5 +35,4 @@ public class DiscountCode {
     private Integer usageLimit; // Số lần sử dụng tối đa
     private Integer timesUsed = 0; // Số lần đã sử dụng
 
-    // Constructors, Getters, Setters (Lombok)
 }

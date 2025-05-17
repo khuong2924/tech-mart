@@ -35,7 +35,7 @@ public class Cart {
     private User user; // Có thể là nullable nếu cho phép giỏ hàng ẩn danh (lưu session ID)
 
     // Session ID cho giỏ hàng ẩn danh (nếu user chưa login)
-    private String sessionId;
+    // private String sessionId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
