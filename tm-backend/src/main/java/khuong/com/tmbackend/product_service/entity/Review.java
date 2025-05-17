@@ -2,13 +2,13 @@ package khuong.com.tmbackend.product_service.entity;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import khuong.com.tmbackend.user_service.entity.User;
@@ -38,7 +38,7 @@ public class Review {
 
     private int rating; 
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String comment;
 
     private Instant createdAt;

@@ -14,6 +14,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:vinhkhuong2924@gmail.com}
+    password: ${MAIL_PASSWORD:fokey2924 }
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 server:
   port: 8080
@@ -24,4 +35,7 @@ app:
     allowed-origins: "*"
     allowed-methods: "*"
     allowed-headers: "*"
-    max-age: 3600 
+    max-age: 3600
+  jwt:
+    secret: ${JWT_SECRET:techMartSecretKey2025VerySecureAndLongKeyForJwtTokenSignature}
+    expiration: 86400000 # 24 hours in milliseconds 

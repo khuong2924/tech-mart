@@ -13,12 +13,12 @@ import io.jsonwebtoken.security.Keys;
 @Configuration
 public class JwtConfig {
 
-    @Value("${jwt.secret}")
+    @Value("${app.jwt.secret}")
     private String jwtSecret;
 
     @Bean
     public Key key() {
-        return Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(jwtSecret));
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public String generateToken(String subject) {
