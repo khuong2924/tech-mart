@@ -11,6 +11,11 @@
 - [Quản lý đơn hàng](#quản-lý-đơn-hàng)
 - [Mã giảm giá](#mã-giảm-giá)
 - [Đánh giá sản phẩm](#đánh-giá-sản-phẩm)
+- [Quản trị viên (Admin)](#quản-trị-viên-admin)
+  - [Chat với khách hàng](#chat-với-khách-hàng)
+  - [Quản lý người dùng](#quản-lý-người-dùng-admin)
+  - [Chiết khấu sản phẩm](#chiết-khấu-sản-phẩm)
+  - [Bảng điều khiển](#bảng-điều-khiển)
 
 ## Xác thực người dùng
 
@@ -773,4 +778,568 @@
 
 **Mô tả:** Xóa đánh giá
 
-**Response:** 204 No Content 
+**Response:** 204 No Content
+
+## Quản trị viên (Admin)
+
+Phần này mô tả các API dành riêng cho quản trị viên (Admin) hệ thống.
+
+### Chat với khách hàng
+
+#### Lấy danh sách cuộc trò chuyện
+**Endpoint:** `GET /api/admin/chats`
+
+**Mô tả:** Lấy danh sách tất cả các cuộc trò chuyện (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `page` (mặc định: 0): Số trang
+- `size` (mặc định: 20): Số cuộc trò chuyện trên mỗi trang
+- `status` (tùy chọn): Trạng thái cuộc trò chuyện (ACTIVE, CLOSED)
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "userId": 5,
+      "userName": "Nguyễn Văn A",
+      "lastMessage": "Tôi cần hỗ trợ về đơn hàng của mình",
+      "lastMessageTime": "2023-07-15T10:30:00",
+      "unreadCount": 2,
+      "status": "ACTIVE"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 5,
+  "totalPages": 1,
+  "last": true
+}
+```
+
+#### Lấy lịch sử tin nhắn của một cuộc trò chuyện
+**Endpoint:** `GET /api/admin/chats/{chatId}/messages`
+
+**Mô tả:** Lấy lịch sử tin nhắn của một cuộc trò chuyện (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `page` (mặc định: 0): Số trang
+- `size` (mặc định: 50): Số tin nhắn trên mỗi trang
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 101,
+      "senderId": 5,
+      "senderName": "Nguyễn Văn A",
+      "senderRole": "USER",
+      "message": "Tôi cần hỗ trợ về đơn hàng của mình",
+      "timestamp": "2023-07-15T10:30:00",
+      "read": true
+    },
+    {
+      "id": 102,
+      "senderId": 1,
+      "senderName": "Admin",
+      "senderRole": "ADMIN",
+      "message": "Xin chào, tôi có thể giúp gì cho bạn?",
+      "timestamp": "2023-07-15T10:31:00",
+      "read": true
+    }
+  ],
+  "page": 0,
+  "size": 50,
+  "totalElements": 10,
+  "totalPages": 1,
+  "last": true
+}
+```
+
+#### Gửi tin nhắn đến khách hàng
+**Endpoint:** `POST /api/admin/chats/{chatId}/messages`
+
+**Mô tả:** Gửi tin nhắn đến khách hàng trong một cuộc trò chuyện (yêu cầu quyền ADMIN)
+
+**Request:**
+```json
+{
+  "message": "Chúng tôi đã xác nhận đơn hàng của bạn và sẽ sớm giao hàng."
+}
+```
+
+**Response:**
+```json
+{
+  "id": 103,
+  "senderId": 1,
+  "senderName": "Admin",
+  "senderRole": "ADMIN",
+  "message": "Chúng tôi đã xác nhận đơn hàng của bạn và sẽ sớm giao hàng.",
+  "timestamp": "2023-07-15T10:35:00",
+  "read": false
+}
+```
+
+#### Đánh dấu tin nhắn đã đọc
+**Endpoint:** `PUT /api/admin/chats/{chatId}/read`
+
+**Mô tả:** Đánh dấu tất cả tin nhắn trong cuộc trò chuyện đã được đọc (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "chatId": 1,
+  "unreadCount": 0,
+  "success": true
+}
+```
+
+#### Đóng cuộc trò chuyện
+**Endpoint:** `PUT /api/admin/chats/{chatId}/close`
+
+**Mô tả:** Đánh dấu cuộc trò chuyện đã đóng (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "chatId": 1,
+  "status": "CLOSED",
+  "closedAt": "2023-07-15T11:30:00"
+}
+```
+
+### Quản lý người dùng (Admin)
+
+#### Lấy danh sách người dùng
+**Endpoint:** `GET /api/admin/users`
+
+**Mô tả:** Lấy danh sách tất cả người dùng (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `page` (mặc định: 0): Số trang
+- `size` (mặc định: 10): Số người dùng trên mỗi trang
+- `sortBy` (mặc định: "id"): Trường sắp xếp
+- `sortDir` (mặc định: "asc"): Hướng sắp xếp
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "username": "user123",
+      "email": "user@example.com",
+      "fullName": "Nguyễn Văn A",
+      "phone": "0123456789",
+      "address": "123 Đường ABC, Quận XYZ, Hà Nội",
+      "gender": "MALE",
+      "roles": ["ROLE_USER"],
+      "enabled": true,
+      "createdAt": "2023-01-15T10:30:00"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 100,
+  "totalPages": 10,
+  "last": false
+}
+```
+
+#### Tìm kiếm người dùng
+**Endpoint:** `GET /api/admin/users/search`
+
+**Mô tả:** Tìm kiếm người dùng theo từ khóa (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `keyword`: Từ khóa tìm kiếm (tên, email, số điện thoại)
+- `page` (mặc định: 0): Số trang
+- `size` (mặc định: 10): Số người dùng trên mỗi trang
+
+**Response:** Tương tự như lấy danh sách người dùng
+
+#### Lấy thông tin chi tiết người dùng
+**Endpoint:** `GET /api/admin/users/{id}`
+
+**Mô tả:** Lấy thông tin chi tiết của một người dùng (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "user123",
+  "email": "user@example.com",
+  "fullName": "Nguyễn Văn A",
+  "phone": "0123456789",
+  "address": "123 Đường ABC, Quận XYZ, Hà Nội",
+  "gender": "MALE",
+  "roles": ["ROLE_USER"],
+  "enabled": true,
+  "createdAt": "2023-01-15T10:30:00",
+  "lastLogin": "2023-07-10T08:45:00",
+  "orderCount": 5,
+  "totalSpent": 25000000
+}
+```
+
+#### Cập nhật thông tin người dùng
+**Endpoint:** `PUT /api/admin/users/{id}`
+
+**Mô tả:** Cập nhật thông tin người dùng (yêu cầu quyền ADMIN)
+
+**Request:**
+```json
+{
+  "fullName": "Nguyễn Văn A",
+  "phone": "0987654321",
+  "address": "456 Đường DEF, Quận UVW, Hà Nội",
+  "gender": "MALE",
+  "enabled": true,
+  "roles": ["ROLE_USER", "ROLE_ADMIN"]
+}
+```
+
+**Response:** Thông tin người dùng đã cập nhật
+
+#### Vô hiệu hóa tài khoản người dùng
+**Endpoint:** `PUT /api/admin/users/{id}/disable`
+
+**Mô tả:** Vô hiệu hóa tài khoản người dùng (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "user123",
+  "enabled": false,
+  "message": "User account disabled successfully"
+}
+```
+
+#### Kích hoạt tài khoản người dùng
+**Endpoint:** `PUT /api/admin/users/{id}/enable`
+
+**Mô tả:** Kích hoạt tài khoản người dùng (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "user123",
+  "enabled": true,
+  "message": "User account enabled successfully"
+}
+```
+
+### Chiết khấu sản phẩm
+
+#### Áp dụng chiết khấu cho sản phẩm
+**Endpoint:** `POST /api/admin/products/{productId}/discount`
+
+**Mô tả:** Áp dụng chiết khấu cho một sản phẩm cụ thể (yêu cầu quyền ADMIN)
+
+**Request:**
+```json
+{
+  "discountPercent": 15,
+  "startDate": "2023-08-01",
+  "endDate": "2023-08-31",
+  "note": "Khuyến mãi mùa hè"
+}
+```
+
+**Response:**
+```json
+{
+  "productId": 1,
+  "productName": "iPhone 13",
+  "originalPrice": 24990000,
+  "discountPercent": 15,
+  "discountedPrice": 21241500,
+  "startDate": "2023-08-01",
+  "endDate": "2023-08-31",
+  "active": true,
+  "note": "Khuyến mãi mùa hè"
+}
+```
+
+#### Áp dụng chiết khấu theo danh mục
+**Endpoint:** `POST /api/admin/categories/{categoryId}/discount`
+
+**Mô tả:** Áp dụng chiết khấu cho tất cả sản phẩm trong một danh mục (yêu cầu quyền ADMIN)
+
+**Request:**
+```json
+{
+  "discountPercent": 10,
+  "startDate": "2023-08-01",
+  "endDate": "2023-08-31",
+  "note": "Khuyến mãi danh mục Smartphone"
+}
+```
+
+**Response:**
+```json
+{
+  "categoryId": 1,
+  "categoryName": "Smartphones",
+  "discountPercent": 10,
+  "startDate": "2023-08-01",
+  "endDate": "2023-08-31",
+  "productCount": 25,
+  "note": "Khuyến mãi danh mục Smartphone"
+}
+```
+
+#### Lấy danh sách chiết khấu
+**Endpoint:** `GET /api/admin/discounts`
+
+**Mô tả:** Lấy danh sách tất cả chiết khấu đang áp dụng (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `page` (mặc định: 0): Số trang
+- `size` (mặc định: 10): Số chiết khấu trên mỗi trang
+- `active` (tùy chọn): Lọc chiết khấu theo trạng thái hoạt động
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "type": "PRODUCT",
+      "productId": 1,
+      "productName": "iPhone 13",
+      "categoryId": null,
+      "categoryName": null,
+      "discountPercent": 15,
+      "startDate": "2023-08-01",
+      "endDate": "2023-08-31",
+      "active": true,
+      "note": "Khuyến mãi mùa hè"
+    },
+    {
+      "id": 2,
+      "type": "CATEGORY",
+      "productId": null,
+      "productName": null,
+      "categoryId": 1,
+      "categoryName": "Smartphones",
+      "discountPercent": 10,
+      "startDate": "2023-08-01",
+      "endDate": "2023-08-31",
+      "active": true,
+      "note": "Khuyến mãi danh mục Smartphone"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 10,
+  "totalPages": 1,
+  "last": true
+}
+```
+
+#### Xóa chiết khấu
+**Endpoint:** `DELETE /api/admin/discounts/{discountId}`
+
+**Mô tả:** Xóa một chiết khấu (yêu cầu quyền ADMIN)
+
+**Response:** 204 No Content
+
+### Bảng điều khiển
+
+#### Bảng điều khiển đơn giản
+**Endpoint:** `GET /api/admin/dashboard/simple`
+
+**Mô tả:** Lấy thông tin tổng quan cho bảng điều khiển đơn giản (yêu cầu quyền ADMIN)
+
+**Response:**
+```json
+{
+  "totalOrders": 1250,
+  "totalRevenue": 3750000000,
+  "totalUsers": 850,
+  "totalProducts": 235,
+  "pendingOrders": 35,
+  "completedOrders": 1150,
+  "cancelledOrders": 65,
+  "topSellingCategories": [
+    {
+      "categoryId": 1,
+      "categoryName": "Smartphones",
+      "totalSales": 1800000000
+    },
+    {
+      "categoryId": 2,
+      "categoryName": "Laptops",
+      "totalSales": 1200000000
+    }
+  ]
+}
+```
+
+#### Bảng điều khiển nâng cao
+**Endpoint:** `GET /api/admin/dashboard/advanced`
+
+**Mô tả:** Lấy thông tin chi tiết cho bảng điều khiển nâng cao (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `startDate` (tùy chọn): Ngày bắt đầu thống kê (định dạng YYYY-MM-DD)
+- `endDate` (tùy chọn): Ngày kết thúc thống kê (định dạng YYYY-MM-DD)
+
+**Response:**
+```json
+{
+  "salesSummary": {
+    "totalRevenue": 3750000000,
+    "totalOrders": 1250,
+    "averageOrderValue": 3000000,
+    "salesGrowth": 15.5
+  },
+  "salesByPeriod": [
+    {
+      "period": "2023-07",
+      "revenue": 1200000000,
+      "orders": 400
+    },
+    {
+      "period": "2023-08",
+      "revenue": 1500000000,
+      "orders": 500
+    },
+    {
+      "period": "2023-09",
+      "revenue": 1050000000,
+      "orders": 350
+    }
+  ],
+  "salesByCategory": [
+    {
+      "categoryId": 1,
+      "categoryName": "Smartphones",
+      "revenue": 1800000000,
+      "orders": 600,
+      "percentage": 48.0
+    },
+    {
+      "categoryId": 2,
+      "categoryName": "Laptops",
+      "revenue": 1200000000,
+      "orders": 400,
+      "percentage": 32.0
+    }
+  ],
+  "topProducts": [
+    {
+      "productId": 1,
+      "productName": "iPhone 13",
+      "revenue": 750000000,
+      "quantity": 300,
+      "categoryId": 1,
+      "categoryName": "Smartphones"
+    },
+    {
+      "productId": 5,
+      "productName": "MacBook Pro",
+      "revenue": 600000000,
+      "quantity": 120,
+      "categoryId": 2,
+      "categoryName": "Laptops"
+    }
+  ],
+  "customerStats": {
+    "totalUsers": 850,
+    "newUsers": 150,
+    "returningCustomers": 300,
+    "conversionRate": 35.5
+  },
+  "inventorySummary": {
+    "totalProducts": 235,
+    "lowStockProducts": 15,
+    "outOfStockProducts": 5,
+    "topCategories": [
+      {
+        "categoryId": 1,
+        "categoryName": "Smartphones",
+        "productCount": 50
+      }
+    ]
+  }
+}
+```
+
+#### Báo cáo doanh thu theo thời gian
+**Endpoint:** `GET /api/admin/reports/sales-by-time`
+
+**Mô tả:** Lấy báo cáo doanh thu theo khoảng thời gian (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `interval` (mặc định: "month"): Khoảng thời gian (day, week, month, year)
+- `startDate`: Ngày bắt đầu thống kê (định dạng YYYY-MM-DD)
+- `endDate`: Ngày kết thúc thống kê (định dạng YYYY-MM-DD)
+
+**Response:**
+```json
+{
+  "interval": "month",
+  "data": [
+    {
+      "period": "2023-07",
+      "revenue": 1200000000,
+      "orders": 400,
+      "averageOrderValue": 3000000
+    },
+    {
+      "period": "2023-08",
+      "revenue": 1500000000,
+      "orders": 500,
+      "averageOrderValue": 3000000
+    }
+  ],
+  "total": {
+    "revenue": 2700000000,
+    "orders": 900,
+    "averageOrderValue": 3000000
+  }
+}
+```
+
+#### Báo cáo sản phẩm bán chạy
+**Endpoint:** `GET /api/admin/reports/top-selling-products`
+
+**Mô tả:** Lấy báo cáo các sản phẩm bán chạy nhất (yêu cầu quyền ADMIN)
+
+**Tham số:**
+- `limit` (mặc định: 10): Số lượng sản phẩm cần hiển thị
+- `startDate` (tùy chọn): Ngày bắt đầu thống kê (định dạng YYYY-MM-DD)
+- `endDate` (tùy chọn): Ngày kết thúc thống kê (định dạng YYYY-MM-DD)
+
+**Response:**
+```json
+{
+  "products": [
+    {
+      "productId": 1,
+      "productName": "iPhone 13",
+      "revenue": 750000000,
+      "quantity": 300,
+      "categoryId": 1,
+      "categoryName": "Smartphones"
+    },
+    {
+      "productId": 5,
+      "productName": "MacBook Pro",
+      "revenue": 600000000,
+      "quantity": 120,
+      "categoryId": 2,
+      "categoryName": "Laptops"
+    }
+  ],
+  "totalRevenue": 1350000000,
+  "totalQuantity": 420
+}
+``` 
