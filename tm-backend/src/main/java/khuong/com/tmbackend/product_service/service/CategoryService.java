@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import khuong.com.tmbackend.product_service.entity.Category;
 import khuong.com.tmbackend.product_service.exception.ResourceNotFoundException;
+import khuong.com.tmbackend.product_service.exception.CategoryDeletionException;
 import khuong.com.tmbackend.product_service.payload.CategoryDTO;
 import khuong.com.tmbackend.product_service.repository.CategoryRepository;
 
@@ -57,6 +58,12 @@ public class CategoryService {
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+        
+        // Check if category has any products using the repository
+        Long productCount = categoryRepository.countProductsByCategoryId(id);
+        if (productCount > 0) {
+            throw new CategoryDeletionException("Cannot delete category with id " + id + " because it contains " + productCount + " products");
+        }
         
         categoryRepository.delete(category);
     }

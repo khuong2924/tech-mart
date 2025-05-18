@@ -12,14 +12,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import khuong.com.tmbackend.product_service.entity.Category;
 import khuong.com.tmbackend.product_service.entity.Product;
 import khuong.com.tmbackend.product_service.entity.ProductVariant;
 import khuong.com.tmbackend.product_service.exception.ResourceNotFoundException;
 import khuong.com.tmbackend.product_service.payload.CategoryDTO;
+import khuong.com.tmbackend.product_service.payload.CreateProductRequest;
 import khuong.com.tmbackend.product_service.payload.PagedResponse;
 import khuong.com.tmbackend.product_service.payload.ProductFilterRequest;
 import khuong.com.tmbackend.product_service.payload.ProductResponseDTO;
 import khuong.com.tmbackend.product_service.payload.ProductVariantDTO;
+import khuong.com.tmbackend.product_service.repository.CategoryRepository;
 import khuong.com.tmbackend.product_service.repository.ProductRepository;
 import khuong.com.tmbackend.product_service.repository.ReviewRepository;
 
@@ -31,6 +34,9 @@ public class ProductService {
     
     @Autowired
     private ReviewRepository reviewRepository;
+    
+    @Autowired
+    private CategoryRepository categoryRepository;
     
     public PagedResponse<ProductResponseDTO> getAllProducts(int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? 
@@ -86,7 +92,22 @@ public class ProductService {
     }
     
     @Transactional
-    public ProductResponseDTO createProduct(Product product) {
+    public ProductResponseDTO createProduct(CreateProductRequest request) {
+        // Create new product
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStockQuantity(request.getStockQuantity());
+        product.setImageUrl(request.getImageUrl());
+        
+        // Load and set category
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+            product.setCategory(category);
+        }
+        
         Product savedProduct = productRepository.save(product);
         return mapToProductResponseDTO(savedProduct);
     }
