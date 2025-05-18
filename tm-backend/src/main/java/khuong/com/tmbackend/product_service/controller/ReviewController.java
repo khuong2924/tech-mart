@@ -23,7 +23,7 @@ import khuong.com.tmbackend.product_service.service.ReviewService;
 import khuong.com.tmbackend.user_service.repository.UserRepository;
 
 @RestController
-@RequestMapping("/api/reviews")
+@RequestMapping("/api")
 public class ReviewController {
     
     @Autowired
@@ -32,7 +32,7 @@ public class ReviewController {
     @Autowired
     private UserRepository userRepository;
     
-    @GetMapping("/product/{productId}")
+    @GetMapping("/products/{productId}/reviews")
     public ResponseEntity<PagedResponse<ReviewResponseDTO>> getProductReviews(
             @PathVariable Long productId,
             @RequestParam(defaultValue = "0") int page,
@@ -42,8 +42,9 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
     
-    @PostMapping
+    @PostMapping("/products/{productId}/reviews")
     public ResponseEntity<ReviewResponseDTO> createReview(
+            @PathVariable Long productId,
             @Valid @RequestBody ReviewRequestDTO reviewRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
         
@@ -51,14 +52,18 @@ public class ReviewController {
         Long userId = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"))
                 .getId();
+        
+        // Set product ID in the request
+        reviewRequest.setProductId(productId);
         
         ReviewResponseDTO newReview = reviewService.createReview(reviewRequest, userId);
         return new ResponseEntity<>(newReview, HttpStatus.CREATED);
     }
     
-    @PutMapping("/{id}")
+    @PutMapping("/products/{productId}/reviews/{reviewId}")
     public ResponseEntity<ReviewResponseDTO> updateReview(
-            @PathVariable Long id,
+            @PathVariable Long productId,
+            @PathVariable Long reviewId,
             @Valid @RequestBody ReviewRequestDTO reviewRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
         
@@ -67,13 +72,17 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"))
                 .getId();
         
-        ReviewResponseDTO updatedReview = reviewService.updateReview(id, reviewRequest, userId);
+        // Set product ID in the request
+        reviewRequest.setProductId(productId);
+        
+        ReviewResponseDTO updatedReview = reviewService.updateReview(reviewId, reviewRequest, userId);
         return ResponseEntity.ok(updatedReview);
     }
     
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/products/{productId}/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(
-            @PathVariable Long id,
+            @PathVariable Long productId,
+            @PathVariable Long reviewId,
             @AuthenticationPrincipal UserDetails userDetails) {
         
         // Get user ID from authenticated user
@@ -81,7 +90,7 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"))
                 .getId();
         
-        reviewService.deleteReview(id, userId);
+        reviewService.deleteReview(reviewId, userId);
         return ResponseEntity.noContent().build();
     }
 } 
