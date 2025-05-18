@@ -66,8 +66,12 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/**").permitAll()  // Tạm thời cho phép tất cả để test
-                                .anyRequest().authenticated()
+                        auth.requestMatchers("/auth/**").permitAll()
+                            .requestMatchers("/api/products/**").permitAll()
+                            .requestMatchers("/api/categories/**").permitAll()
+                            .requestMatchers("/api/discount-codes/**").hasRole("ADMIN")
+                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());

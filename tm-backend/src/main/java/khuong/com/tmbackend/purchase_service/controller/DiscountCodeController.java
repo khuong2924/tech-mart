@@ -40,14 +40,14 @@ public class DiscountCodeController {
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<DiscountCodeDTO> getDiscountCodeById(@PathVariable Long id) {
         DiscountCodeDTO code = discountCodeService.getDiscountCodeById(id);
         return ResponseEntity.ok(code);
     }
     
     @GetMapping("/by-code")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<DiscountCodeDTO> getDiscountCodeByCode(@RequestParam String code) {
         DiscountCodeDTO discountCode = discountCodeService.getDiscountCodeByCode(code);
         return ResponseEntity.ok(discountCode);
@@ -64,106 +64,119 @@ public class DiscountCodeController {
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<DiscountCodeDTO> createDiscountCode(@Valid @RequestBody CreateDiscountCodeRequest request) {
-        // Convert CreateDiscountCodeRequest to DiscountCode
-        DiscountCode discountCode = new DiscountCode();
-        discountCode.setCode(request.getCode());
-        discountCode.setDescription(request.getDescription());
-        discountCode.setDiscountAmount(request.getDiscountAmount());
-        
-        // Convert percentage to proper format
-        if (request.getDiscountPercent() != null) {
-            discountCode.setDiscountPercentage(request.getDiscountPercent());
+        try {
+            // Convert CreateDiscountCodeRequest to DiscountCode
+            DiscountCode discountCode = new DiscountCode();
+            discountCode.setCode(request.getCode());
+            discountCode.setDescription(request.getDescription());
+            
+            // Set discount percentage
+            if (request.getDiscountPercent() != null) {
+                discountCode.setDiscountPercentage(request.getDiscountPercent());
+            }
+            
+            // Set minimum order amount
+            if (request.getMinOrderValue() != null) {
+                discountCode.setMinimumOrderAmount(request.getMinOrderValue());
+            }
+            
+            // Set maximum discount amount
+            if (request.getMaxDiscount() != null) {
+                discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
+            }
+            
+            // Convert date strings to Instant
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
+                LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
+                discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            } else {
+                discountCode.setValidFrom(Instant.now());
+            }
+            
+            if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
+                LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
+                discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            }
+            
+            discountCode.setUsageLimit(request.getUsageLimit());
+            discountCode.setActive(request.isActive());
+            discountCode.setUsageCount(0);
+            
+            DiscountCodeDTO newCode = discountCodeService.createDiscountCode(discountCode);
+            return new ResponseEntity<>(newCode, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-        
-        // Set minimum order amount
-        if (request.getMinOrderValue() != null) {
-            discountCode.setMinimumOrderAmount(request.getMinOrderValue());
-        }
-        
-        // Set maximum discount amount
-        if (request.getMaxDiscount() != null) {
-            discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
-        }
-        
-        // Convert date strings to Instant
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
-        if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
-            LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
-            discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        } else {
-            discountCode.setValidFrom(Instant.now());
-        }
-        
-        if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
-            LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
-            discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-        
-        discountCode.setUsageLimit(request.getUsageLimit());
-        discountCode.setActive(request.isActive());
-        discountCode.setUsageCount(0);
-        
-        DiscountCodeDTO newCode = discountCodeService.createDiscountCode(discountCode);
-        return new ResponseEntity<>(newCode, HttpStatus.CREATED);
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<DiscountCodeDTO> updateDiscountCode(
             @PathVariable Long id, 
             @Valid @RequestBody CreateDiscountCodeRequest request) {
-        
-        // Convert CreateDiscountCodeRequest to DiscountCode similar to createDiscountCode
-        DiscountCode discountCode = new DiscountCode();
-        discountCode.setCode(request.getCode());
-        discountCode.setDescription(request.getDescription());
-        discountCode.setDiscountAmount(request.getDiscountAmount());
-        
-        if (request.getDiscountPercent() != null) {
-            discountCode.setDiscountPercentage(request.getDiscountPercent());
+        try {
+            // Convert CreateDiscountCodeRequest to DiscountCode similar to createDiscountCode
+            DiscountCode discountCode = new DiscountCode();
+            discountCode.setCode(request.getCode());
+            discountCode.setDescription(request.getDescription());
+            
+            if (request.getDiscountPercent() != null) {
+                discountCode.setDiscountPercentage(request.getDiscountPercent());
+            }
+            
+            if (request.getMinOrderValue() != null) {
+                discountCode.setMinimumOrderAmount(request.getMinOrderValue());
+            }
+            
+            if (request.getMaxDiscount() != null) {
+                discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
+            }
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
+                LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
+                discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            }
+            
+            if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
+                LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
+                discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            }
+            
+            discountCode.setUsageLimit(request.getUsageLimit());
+            discountCode.setActive(request.isActive());
+            
+            DiscountCodeDTO updatedCode = discountCodeService.updateDiscountCode(id, discountCode);
+            return ResponseEntity.ok(updatedCode);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-        
-        if (request.getMinOrderValue() != null) {
-            discountCode.setMinimumOrderAmount(request.getMinOrderValue());
-        }
-        
-        if (request.getMaxDiscount() != null) {
-            discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
-        }
-        
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
-        if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
-            LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
-            discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-        
-        if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
-            LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
-            discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-        
-        discountCode.setUsageLimit(request.getUsageLimit());
-        discountCode.setActive(request.isActive());
-        
-        DiscountCodeDTO updatedCode = discountCodeService.updateDiscountCode(id, discountCode);
-        return ResponseEntity.ok(updatedCode);
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteDiscountCode(@PathVariable Long id) {
-        discountCodeService.deleteDiscountCode(id);
-        return ResponseEntity.noContent().build();
+        try {
+            discountCodeService.deleteDiscountCode(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
     @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<DiscountCodeDTO> deactivateDiscountCode(@PathVariable Long id) {
-        DiscountCodeDTO deactivatedCode = discountCodeService.deactivateDiscountCode(id);
-        return ResponseEntity.ok(deactivatedCode);
+        try {
+            DiscountCodeDTO deactivatedCode = discountCodeService.deactivateDiscountCode(id);
+            return ResponseEntity.ok(deactivatedCode);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 } 
