@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,7 @@ import khuong.com.tmbackend.user_service.payload.response.JwtResponse;
 import khuong.com.tmbackend.user_service.payload.response.MessageResponse;
 import khuong.com.tmbackend.user_service.repository.RoleRepository;
 import khuong.com.tmbackend.user_service.repository.UserRepository;
+import khuong.com.tmbackend.user_service.repository.UserRoleRepository;
 import khuong.com.tmbackend.user_service.security.JwtUtils;
 import khuong.com.tmbackend.user_service.security.UserDetailsImpl;
 import khuong.com.tmbackend.user_service.service.AuthService;
@@ -49,6 +51,9 @@ public class AuthController {
 
     @Autowired
     RoleRepository roleRepository;
+
+    @Autowired
+    UserRoleRepository userRoleRepository;
 
     @Autowired
     PasswordEncoder encoder;
@@ -78,6 +83,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
+    @Transactional
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
@@ -91,6 +97,7 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
+        // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
@@ -102,21 +109,20 @@ public class AuthController {
         Set<String> strRoles = signUpRequest.getRoles();
         Set<UserRole> userRoles = new HashSet<>();
 
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_WAITER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        if (strRoles == null || strRoles.isEmpty()) {
+            Role userRole = roleRepository.findByName(ERole.ROLE_CUSTOMER)
+                    .orElseThrow(() -> new RuntimeException("Error: Default role is not found."));
             userRoles.add(new UserRole(user, userRole));
         } else {
             strRoles.forEach(role -> {
-                ERole eRole;
                 try {
-                    eRole = ERole.valueOf(role);
+                    ERole eRole = ERole.valueOf(role);
+                    Role foundRole = roleRepository.findByName(eRole)
+                            .orElseThrow(() -> new RuntimeException("Error: Role " + role + " is not found."));
+                    userRoles.add(new UserRole(user, foundRole));
                 } catch (IllegalArgumentException e) {
                     throw new RuntimeException("Error: Role " + role + " is not found.");
                 }
-                Role foundRole = roleRepository.findByName(eRole)
-                        .orElseThrow(() -> new RuntimeException("Error: Role " + role + " is not found."));
-                userRoles.add(new UserRole(user, foundRole));
             });
         }
 

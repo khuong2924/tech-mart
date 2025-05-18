@@ -27,10 +27,20 @@ public class UserDetailsImpl implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
+        // Debug the roles that are being loaded
+        System.out.println("Building UserDetails for: " + user.getUsername());
+        System.out.println("User roles size: " + user.getRoles().size());
+        
+        user.getRoles().forEach(role -> {
+            System.out.println("Role: " + role.getRole().getName());
+        });
+        
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getName().name()))
                 .collect(Collectors.toList());
 
+        System.out.println("Authorities size: " + authorities.size());
+        
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),

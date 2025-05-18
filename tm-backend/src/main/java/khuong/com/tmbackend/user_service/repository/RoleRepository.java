@@ -11,4 +11,5 @@ import khuong.com.tmbackend.user_service.entity.Role;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Integer> {
     Optional<Role> findByName(ERole name);
+    boolean existsByName(ERole name);
 }
