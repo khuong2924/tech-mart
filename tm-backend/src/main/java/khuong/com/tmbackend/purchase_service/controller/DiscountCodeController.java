@@ -1,5 +1,9 @@
 package khuong.com.tmbackend.purchase_service.controller;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import khuong.com.tmbackend.purchase_service.dto.CreateDiscountCodeRequest;
 import khuong.com.tmbackend.purchase_service.dto.DiscountCodeDTO;
 import khuong.com.tmbackend.purchase_service.entity.DiscountCode;
 import khuong.com.tmbackend.purchase_service.service.DiscountCodeService;
@@ -60,8 +65,48 @@ public class DiscountCodeController {
     
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DiscountCodeDTO> createDiscountCode(@Valid @RequestBody DiscountCode code) {
-        DiscountCodeDTO newCode = discountCodeService.createDiscountCode(code);
+    public ResponseEntity<DiscountCodeDTO> createDiscountCode(@Valid @RequestBody CreateDiscountCodeRequest request) {
+        // Convert CreateDiscountCodeRequest to DiscountCode
+        DiscountCode discountCode = new DiscountCode();
+        discountCode.setCode(request.getCode());
+        discountCode.setDescription(request.getDescription());
+        discountCode.setDiscountAmount(request.getDiscountAmount());
+        
+        // Convert percentage to proper format
+        if (request.getDiscountPercent() != null) {
+            discountCode.setDiscountPercentage(request.getDiscountPercent());
+        }
+        
+        // Set minimum order amount
+        if (request.getMinOrderValue() != null) {
+            discountCode.setMinimumOrderAmount(request.getMinOrderValue());
+        }
+        
+        // Set maximum discount amount
+        if (request.getMaxDiscount() != null) {
+            discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
+        }
+        
+        // Convert date strings to Instant
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
+            LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
+            discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        } else {
+            discountCode.setValidFrom(Instant.now());
+        }
+        
+        if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
+            LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
+            discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+        
+        discountCode.setUsageLimit(request.getUsageLimit());
+        discountCode.setActive(request.isActive());
+        discountCode.setUsageCount(0);
+        
+        DiscountCodeDTO newCode = discountCodeService.createDiscountCode(discountCode);
         return new ResponseEntity<>(newCode, HttpStatus.CREATED);
     }
     
@@ -69,9 +114,42 @@ public class DiscountCodeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountCodeDTO> updateDiscountCode(
             @PathVariable Long id, 
-            @Valid @RequestBody DiscountCode code) {
+            @Valid @RequestBody CreateDiscountCodeRequest request) {
         
-        DiscountCodeDTO updatedCode = discountCodeService.updateDiscountCode(id, code);
+        // Convert CreateDiscountCodeRequest to DiscountCode similar to createDiscountCode
+        DiscountCode discountCode = new DiscountCode();
+        discountCode.setCode(request.getCode());
+        discountCode.setDescription(request.getDescription());
+        discountCode.setDiscountAmount(request.getDiscountAmount());
+        
+        if (request.getDiscountPercent() != null) {
+            discountCode.setDiscountPercentage(request.getDiscountPercent());
+        }
+        
+        if (request.getMinOrderValue() != null) {
+            discountCode.setMinimumOrderAmount(request.getMinOrderValue());
+        }
+        
+        if (request.getMaxDiscount() != null) {
+            discountCode.setMaximumDiscountAmount(request.getMaxDiscount());
+        }
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        
+        if (request.getStartDate() != null && !request.getStartDate().isEmpty()) {
+            LocalDate startLocalDate = LocalDate.parse(request.getStartDate(), formatter);
+            discountCode.setValidFrom(startLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+        
+        if (request.getEndDate() != null && !request.getEndDate().isEmpty()) {
+            LocalDate endLocalDate = LocalDate.parse(request.getEndDate(), formatter);
+            discountCode.setValidTo(endLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
+        
+        discountCode.setUsageLimit(request.getUsageLimit());
+        discountCode.setActive(request.isActive());
+        
+        DiscountCodeDTO updatedCode = discountCodeService.updateDiscountCode(id, discountCode);
         return ResponseEntity.ok(updatedCode);
     }
     
