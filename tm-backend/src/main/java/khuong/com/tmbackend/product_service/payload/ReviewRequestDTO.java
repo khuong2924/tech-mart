@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequestDTO {
-    @NotNull
-    private Long productId;
+    private Long productId; // Will be set from URL path
     
     @NotNull
     @Min(1)
